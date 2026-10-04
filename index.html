@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1e40af">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Profes del Tossal">
+<title>Profes del Tossal</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root{
+    --primario:#1e40af; --primario-osc:#1e3a8a; --acento:#3b82f6;
+    --fondo:#ffffff; --tarjeta:#1e40af; --texto:#ffffff; --sub:#dbeafe;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    background:var(--fondo);
+    min-height:100vh; color:var(--texto);
+    padding:0 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  header{
+    text-align:center; padding:40px 12px 24px; color:var(--primario-osc);
+  }
+  header .logo{font-size:52px; line-height:1;}
+  header .logo img{height:72px; width:auto; filter:drop-shadow(0 4px 10px rgba(0,0,0,.25));}
+  header h1{font-size:1.55rem; font-weight:800; margin-top:10px; letter-spacing:.3px;}
+  header p{opacity:.9; font-size:.95rem; margin-top:6px;}
+
+  #installBtn{
+    display:none; margin:0 auto 18px; border:none; cursor:pointer;
+    background:var(--primario); color:#fff; font-weight:700; font-size:.95rem;
+    padding:12px 22px; border-radius:999px; box-shadow:0 4px 14px rgba(30,64,175,.35);
+  }
+  #installBtn:active{transform:scale(.96);}
+
+  .grid{
+    display:grid; gap:14px; max-width:560px; margin:0 auto;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  }
+  .btn-tarjeta{
+    background:linear-gradient(150deg,#2563eb 0%,var(--primario) 60%,var(--primario-osc) 100%);
+    border-radius:18px; padding:20px 14px 16px;
+    text-align:center; text-decoration:none; color:#fff;
+    box-shadow:0 6px 18px rgba(30,64,175,.35);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    transition:transform .12s ease; position:relative;
+    cursor:pointer; user-select:none;
+  }
+  .btn-tarjeta:active{transform:scale(.95);}
+  .btn-tarjeta .icono{
+    width:56px;height:56px;border-radius:16px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px; color:var(--primario);
+    background:#fff; box-shadow:0 2px 8px rgba(2,6,23,.2);
+    position:relative; overflow:hidden;
+  }
+  .btn-tarjeta .icono img{
+    position:absolute; inset:0; width:100%; height:100%;
+    padding:13px; object-fit:contain; box-sizing:border-box;
+  }
+  .btn-tarjeta .titulo{font-weight:700; font-size:.98rem; line-height:1.25; color:#fff;}
+  .btn-tarjeta .sub{font-size:.78rem; color:var(--sub);}
+
+  /* ============ LOGIN ============ */
+  #login{
+    position:fixed; inset:0; z-index:100;
+    background:var(--fondo);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    min-height:100vh; min-height:100dvh;
+  }
+  #login.oculto{display:none !important;}
+  .login-caja{
+    background:#fff; border:1.5px solid #e2e8f0; border-radius:22px; padding:32px 26px;
+    width:100%; max-width:380px; text-align:center;
+    box-shadow:0 10px 40px rgba(30,64,175,.15);
+  }
+  .login-caja .logo{font-size:48px; margin-bottom:4px; line-height:1;}
+  .login-caja .logo img{height:64px; width:auto;}
+  .login-caja h2{font-size:1.25rem; color:var(--primario-osc); margin:8px 0 4px;}
+  .login-caja p.sub{font-size:.85rem; color:#64748b; margin-bottom:18px;}
+  .login-caja input{
+    width:100%; padding:13px 14px; border:1.5px solid #cbd5e1; border-radius:12px;
+    font-size:1rem; outline:none; text-align:center; letter-spacing:2px;
+  }
+  .login-caja input:focus{border-color:var(--acento);}
+  .login-caja input.err{border-color:#ef4444; animation:sacudida .3s;}
+  @keyframes sacudida{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  #loginError{color:#dc2626; font-size:.82rem; margin-top:10px; min-height:1.2em;}
+  #entrarBtn{
+    width:100%; margin-top:14px; border:none; border-radius:12px; padding:14px;
+    background:var(--primario); color:#fff; font-size:1rem; font-weight:700; cursor:pointer;
+  }
+  #entrarBtn:active{transform:scale(.97);}
+  .login-info{font-size:.72rem; color:#94a3b8; margin-top:14px;}
+</style>
+</head>
+<body>
+
+<!-- ============ PANTALLA DE ACCESO ============ -->
+<div id="login">
+  <div class="login-caja">
+    <div class="logo" id="logoLogin">
+      <img src="logo.svg" alt="Logotipo del colegio" onerror="this.parentElement.textContent='🔒'">
+    </div>
+    <h2>Profes del Tossal</h2>
+    <p class="sub">Zona reservada al profesorado · Introduce la contraseña</p>
+    <input type="password" id="passInput" placeholder="••••••••" autocomplete="current-password">
+    <div id="loginError"></div>
+    <button id="entrarBtn">Acceder</button>
+    <p class="login-info">Contraseña por defecto: <b>profes2026</b><br>(cámbiala en el código, constante CLAVE_ACCESO)</p>
+  </div>
+</div>
+
+<header>
+  <div class="logo" id="logoColegio" style="filter:drop-shadow(0 2px 6px rgba(30,64,175,.15))">
+    <img src="logo.svg" alt="Logotipo del colegio" onerror="this.parentElement.textContent='🎓'">
+  </div>
+  <h1>Profes del Tossal</h1>
+  <p>Zona docente · Acceso rápido a formularios y recursos</p>
+</header>
+
+<button id="installBtn">📲 Instalar aplicación</button>
+
+<main class="grid" id="contenedor"></main>
+
+<script>
+/* ============ DATOS ============ */
+const CLAVE = 'botonesProfes_v2';
+
+
+const PREDETERMINADOS = [
+  {id:1, titulo:'Registro Conducta', url:'https://forms.google.com', icono:'Conducta.svg'},
+  {id:2, titulo:'Calendario', url:'https://outlook.cloud.microsoft/calendar/view/month', icono:'Calendario.svg'},
+  {id:3, titulo:'Formularios', url:'https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=shell&groupid=55f0d7c6-3be7-4d1d-97a3-10e11ce90514', icono:'Formulario.svg'},
+  {id:4, titulo:'OneDrive', url:'https://gvaedu-my.sharepoint.com/shared?id=%2Fsites%2FSection%5F03009749%2DC%2FDocumentos%20compartidos%2FGeneral&listurl=https%3A%2F%2Fgvaedu%2Esharepoint%2Ecom%2Fsites%2FSection%5F03009749%2DC%2FDocumentos%20compartidos&viewid=5a00f050%2D6116%2D4d4c%2D8fb4%2D97b743ea04b7', icono:'OneDrive.svg'},
+  {id:5, titulo:'Canva', url:'https://www.canva.com/folder/FAFx6bKMyEQ', icono:'Canva.svg'},
+  {id:3, titulo:'Horarios Docentes', url:'https://calendario.com', icono:'Horario.svg'},
+  {id:6, titulo:'Correo Colegio', url:'mailto:03009749@edu.gva.es', icono:'email.svg'},
+  {id:7, titulo:'Web El Tossal', url:'https://portal.edu.gva.es/eltossal/', icono:'webcole.svg'},
+];
+/* ============
+{id:1, titulo:'Notificar ausencias de comedor', url:'https://forms.google.com', icono:'ausencias-comedor.svg', emoji:'🍽️'},
+============ */
+function cargarBotones(){
+  try{
+    const d = JSON.parse(localStorage.getItem(CLAVE));
+    if(Array.isArray(d)) return d;
+  }catch(e){}
+  return PREDETERMINADOS.slice();
+}
+function guardarBotones(b){ localStorage.setItem(CLAVE, JSON.stringify(b)); }
+let botones = cargarBotones();
+
+/* ============ RENDER ============ */
+const contenedor = document.getElementById('contenedor');
+function render(){
+  contenedor.innerHTML = '';
+  botones.forEach((b,i)=>{
+    const a = document.createElement('a');
+    a.className = 'btn-tarjeta';
+    a.href = b.url; a.target = '_blank'; a.rel = 'noopener';
+    a.innerHTML = `
+      <span class="icono">${b.emoji||''}<img src="icons/${b.icono}" alt="" onerror="this.remove()"></span>
+      <span class="titulo">${escapar(b.titulo)}</span>`;
+    contenedor.appendChild(a);
+  });
+}
+function escapar(t){ return String(t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+
+/* ============ PWA ============ */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'block';
+});
+document.getElementById('installBtn').addEventListener('click', async ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBtn').style.display = 'none';
+});
+
+
+
+
+/* ============ ACCESO ============ */
+const CLAVE_ACCESO = 'tic2026';             // <-- CAMBIA AQUÍ LA CONTRASEÑA
+const SESION = 'accesoProfesTossal';
+const loginDiv = document.getElementById('login');
+const passInput = document.getElementById('passInput');
+const loginError = document.getElementById('loginError');
+
+function ocultarApp(){ document.querySelectorAll('header, main, #installBtn').forEach(e => e.style.visibility = 'hidden'); }
+function mostrarApp(){ document.querySelectorAll('header, main, #installBtn').forEach(e => e.style.visibility = ''); }
+
+function autenticar(){
+  if(sessionStorage.getItem(SESION) === 'ok'){ loginDiv.classList.add('oculto'); mostrarApp(); return; }
+  ocultarApp();
+  setTimeout(()=>passInput.focus(), 100);
+}
+function intentar(){
+  if(passInput.value === CLAVE_ACCESO){
+    sessionStorage.setItem(SESION, 'ok');
+    loginDiv.classList.add('oculto');
+    mostrarApp();
+  }else{
+    loginError.textContent = 'Contraseña incorrecta, inténtalo de nuevo.';
+    passInput.classList.add('err');
+    setTimeout(()=>passInput.classList.remove('err'), 400);
+    passInput.value = ''; passInput.focus();
+  }
+}
+document.getElementById('entrarBtn').addEventListener('click', intentar);
+passInput.addEventListener('keydown', e => { if(e.key === 'Enter') intentar(); });
+autenticar();
+
+render();
+</script>
+</body>
+</html>
