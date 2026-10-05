@@ -98,6 +98,19 @@
   }
   #entrarBtn:active{transform:scale(.97);}
   .login-info{font-size:.72rem; color:#94a3b8; margin-top:14px;}
+
+  /* ============ VISOR DE IMÁGENES ============ */
+  #visor{
+    position:fixed; inset:0; z-index:200; background:rgba(2,6,23,.92);
+    display:none; align-items:center; justify-content:center; padding:16px;
+  }
+  #visor.abierto{display:flex;}
+  #visor img{max-width:100%; max-height:100%; object-fit:contain; border-radius:12px; background:#fff;}
+  #visorCerrar{
+    position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px;
+    background:rgba(255,255,255,.15); color:#fff; border:none; border-radius:999px;
+    width:44px; height:44px; font-size:20px; cursor:pointer;
+  }
 </style>
 </head>
 <body>
@@ -113,7 +126,7 @@
     <input type="password" id="passInput" placeholder="••••••••" autocomplete="current-password">
     <div id="loginError"></div>
     <button id="entrarBtn">Acceder</button>
-    <!-- <p class="login-info">Contraseña por defecto: <b>profes2026</b><br>(cámbiala en el código, constante CLAVE_ACCESO)</p> -->
+    <p class="login-info">Contraseña por defecto: <b>profes2026</b><br>(cámbiala en el código, constante CLAVE_ACCESO)</p>
   </div>
 </div>
 
@@ -129,6 +142,13 @@
 
 <main class="grid" id="contenedor"></main>
 
+
+<!-- ============ VISOR DE IMÁGENES ============ -->
+<div id="visor">
+  <button id="visorCerrar" aria-label="Cerrar">✕</button>
+  <img id="visorImg" src="" alt="">
+</div>
+
 <script>
 /* ============ DATOS ============ */
 const CLAVE = 'botonesProfes_v2';
@@ -136,17 +156,17 @@ const CLAVE = 'botonesProfes_v2';
 
 const PREDETERMINADOS = [
   {id:1, titulo:'Registro Conducta', url:'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=FBHdc33vx0CGaVadMufim8bX8FXnOx1Nl6MQ4RzpBRRUQ1JFNDZZSEpZUThIUk1BUTFWSDIwTzM4RCQlQCN0PWcu', icono:'Conducta.svg'},
-  {id:2, titulo:'Calendario', url:'https://outlook.cloud.microsoft/calendar/view/month', icono:'Calendario.svg'},
-  {id:3, titulo:'Formularios', url:'https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=shell&groupid=55f0d7c6-3be7-4d1d-97a3-10e11ce90514', icono:'Formulario.svg'},
-  {id:4, titulo:'OneDrive', url:'https://gvaedu-my.sharepoint.com/shared?id=%2Fsites%2FSection%5F03009749%2DC%2FDocumentos%20compartidos%2FGeneral&listurl=https%3A%2F%2Fgvaedu%2Esharepoint%2Ecom%2Fsites%2FSection%5F03009749%2DC%2FDocumentos%20compartidos&viewid=5a00f050%2D6116%2D4d4c%2D8fb4%2D97b743ea04b7', icono:'OneDrive.svg'},
-  {id:5, titulo:'Canva', url:'https://www.canva.com/folder/FAFx6bKMyEQ', icono:'Canva.svg'},
-  {id:3, titulo:'Horarios Docentes', url:'https://gvaedu.sharepoint.com/:x:/r/sites/Section_03009749-C/_layouts/15/Doc.aspx?sourcedoc=%7B3FA2915A-362F-40FD-9AD8-2B0895719B43%7D&file=HORARIO%20TUTOR%C3%8DAS%2026-27.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&wdwpf=c', icono:'Horario.svg'},
-  {id:6, titulo:'Correo Colegio', url:'mailto:03009749@edu.gva.es', icono:'email.svg'},
-  {id:7, titulo:'Web El Tossal', url:'https://portal.edu.gva.es/eltossal/', icono:'webcole.svg'},
+  {id:2, titulo:'Patios', url:'imagenes/patios.svg' , icono:'Patios.svg'},
+  {id:3, titulo:'Calendario', url:'https://outlook.cloud.microsoft/calendar/view/month', icono:'Calendario.svg'},
+  {id:4, titulo:'Formularios', url:'https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=shell&groupid=55f0d7c6-3be7-4d1d-97a3-10e11ce90514', icono:'Formulario.svg'},
+  {id:5, titulo:'OneDrive', url:'https://gvaedu-my.sharepoint.com/shared?id=%2Fsites%2FSection%5F03009749%2DC%2FDocumentos%20compartidos%2FGeneral&listurl=https%3A%2F%2Fgvaedu%2Esharepoint%2Ecom%2Fsites%2FSection%5F03009749%2DC%2FDocumentos%20compartidos&viewid=5a00f050%2D6116%2D4d4c%2D8fb4%2D97b743ea04b7', icono:'OneDrive.svg'},
+  {id:6, titulo:'Canva', url:'https://www.canva.com/folder/FAFx6bKMyEQ', icono:'Canva.svg'},
+  {id:7, titulo:'Horarios Docentes', url:'https://gvaedu.sharepoint.com/:x:/r/sites/Section_03009749-C/_layouts/15/Doc.aspx?sourcedoc=%7B3FA2915A-362F-40FD-9AD8-2B0895719B43%7D&file=HORARIO%20TUTOR%C3%8DAS%2026-27.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&wdwpf=c', icono:'Horario.svg'},
 ];
 /* ============
 {id:1, titulo:'Notificar ausencias de comedor', url:'https://forms.google.com', icono:'ausencias-comedor.svg', emoji:'🍽️'},
 ============ */
+
 function cargarBotones(){
   try{
     const d = JSON.parse(localStorage.getItem(CLAVE));
@@ -165,6 +185,10 @@ function render(){
     const a = document.createElement('a');
     a.className = 'btn-tarjeta';
     a.href = b.url; a.target = '_blank'; a.rel = 'noopener';
+    if(esImagenLocal(b.url)){
+      a.removeAttribute('target');
+      a.addEventListener('click', e=>{ e.preventDefault(); abrirVisor(b.url); });
+    }
     a.innerHTML = `
       <span class="icono">${b.emoji||''}<img src="icons/${b.icono}" alt="" onerror="this.remove()"></span>
       <span class="titulo">${escapar(b.titulo)}</span>`;
@@ -224,6 +248,27 @@ function intentar(){
 document.getElementById('entrarBtn').addEventListener('click', intentar);
 passInput.addEventListener('keydown', e => { if(e.key === 'Enter') intentar(); });
 autenticar();
+
+
+/* ============ VISOR DE IMÁGENES ============ */
+const visor = document.getElementById('visor');
+const visorImg = document.getElementById('visorImg');
+function esImagenLocal(url){
+  return /^imagenes\//i.test(url) || /\.(svg|png|jpe?g|webp|gif)$/i.test(url);
+}
+function abrirVisor(url){
+  visorImg.src = url;
+  visor.classList.add('abierto');
+  document.body.style.overflow = 'hidden';
+}
+function cerrarVisor(){
+  visor.classList.remove('abierto');
+  visorImg.src = '';
+  document.body.style.overflow = '';
+}
+document.getElementById('visorCerrar').addEventListener('click', cerrarVisor);
+visor.addEventListener('click', e => { if(e.target === visor) cerrarVisor(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarVisor(); });
 
 render();
 </script>
