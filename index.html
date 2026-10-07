@@ -111,6 +111,37 @@
     background:rgba(255,255,255,.15); color:#fff; border:none; border-radius:999px;
     width:44px; height:44px; font-size:20px; cursor:pointer;
   }
+
+  /* ============ SELECTOR DE HORARIOS ============ */
+  #selector{
+    position:fixed; inset:0; z-index:150; background:rgba(2,6,23,.55);
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  #selector.abierto{display:flex;}
+  .selector-hoja{
+    background:#fff; width:100%; max-width:520px; border-radius:22px 22px 0 0;
+    padding:22px 20px calc(22px + env(safe-area-inset-bottom)); max-height:80vh; overflow-y:auto;
+  }
+  .selector-hoja h2{font-size:1.15rem; color:var(--primario-osc); margin-bottom:4px;}
+  .selector-hoja p.sub{font-size:.83rem; color:#64748b; margin-bottom:16px;}
+  .selector-hoja h3{
+    font-size:.78rem; text-transform:uppercase; letter-spacing:1px;
+    color:#94a3b8; margin:16px 0 8px;
+  }
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    border:1.5px solid #cbd5e1; background:#fff; color:var(--primario-osc);
+    border-radius:999px; padding:10px 18px; font-size:.92rem; font-weight:600; cursor:pointer;
+  }
+  .chip:active{background:var(--primario); color:#fff; border-color:var(--primario);}
+  .selector-cerrar{
+    width:100%; margin-top:18px; border:none; border-radius:12px; padding:13px;
+    background:#e2e8f0; color:var(--primario-osc); font-size:.95rem; font-weight:700; cursor:pointer;
+  }
+  #visorPdf{
+    display:none; width:100%; height:100%;
+    border:none; border-radius:12px; background:#fff;
+  }
 </style>
 </head>
 <body>
@@ -143,29 +174,78 @@
 <main class="grid" id="contenedor"></main>
 
 
+<!-- ============ SELECTOR DE HORARIOS ============ -->
+<div id="selector">
+  <div class="selector-hoja">
+    <h2>📋 Horarios</h2>
+    <p class="sub">Selecciona el aula o docente para ver su horario</p>
+    <div id="chipsGrupos"></div>
+    <button class="selector-cerrar" id="selectorCerrar">Cancelar</button>
+  </div>
+</div>
+
 <!-- ============ VISOR DE IMÁGENES ============ -->
 <div id="visor">
   <button id="visorCerrar" aria-label="Cerrar">✕</button>
   <img id="visorImg" src="" alt="">
+  <embed id="visorPdf" type="application/pdf">
 </div>
 
 <script>
 /* ============ DATOS ============ */
 const CLAVE = 'botonesProfes_v2';
 
+/* ============ HORARIOS: edita esta lista ============
+   'nombre' es lo que se muestra en el selector,
+   'archivo' es el PDF/imagen dentro de la carpeta horarios/ */
+const HORARIOS = [
+  {grupo:'Departamentos',  nombre:'Biblioteca',       archivo:'Jaime.pdf'},
+  {grupo:'Departamentos',  nombre:'Gimnasio',         archivo:'Jaime.pdf'},
+  {grupo:'Departamentos',  nombre:'Informática',      archivo:'Jaime.pdf'},
+  {grupo:'Departamentos',  nombre:'Multisensorial',   archivo:'Jaime.pdf'},
+  {grupo:'Departamentos',  nombre:'Convivencia',      archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'Infantil 2',               archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'Infantil 3',               archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'Infantil 4',               archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'Infantil 5',               archivo:'Jaime.pdf'},
+  {grupo:'Aulas',      nombre:'AA1',                  archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'1º',                       archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'2º',                       archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'3ºA',                      archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'3ºB',                      archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'3ºC',                      archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'4ºA',                      archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'4ºB',                      archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'5º',                       archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'6ºA',                      archivo:'Jaime.pdf'},
+  {grupo:'Aulas',  nombre:'6ºB',                      archivo:'Jaime.pdf'},
+  {grupo:'Aulas',      nombre:'AA2',                  archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'Juan B.',               archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'Manu',                  archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'Nuria',                 archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'Zara',                  archivo:'Zara.pdf'},
+  {grupo:'Docentes',  nombre:'Jaime',                 archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'Antonio',               archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'Pilar Valen',           archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'Beatriz',               archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'María Ll.',             archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'Pau',                   archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'Claudia',               archivo:'Jaime.pdf'},
+  {grupo:'Docentes',  nombre:'Silvia',                archivo:'Jaime.pdf'},
+];
+
 
 const PREDETERMINADOS = [
   {id:1, titulo:'Registro Conducta', url:'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=FBHdc33vx0CGaVadMufim8bX8FXnOx1Nl6MQ4RzpBRRUQ1JFNDZZSEpZUThIUk1BUTFWSDIwTzM4RCQlQCN0PWcu', icono:'Conducta.svg'},
   {id:2, titulo:'Patios', url:'imagenes/patios.svg' , icono:'Patios.svg'},
-  {id:3, titulo:'Calendario', url:'https://outlook.cloud.microsoft/calendar/view/month', icono:'Calendario.svg'},
-  {id:4, titulo:'Formularios', url:'https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=shell&groupid=55f0d7c6-3be7-4d1d-97a3-10e11ce90514', icono:'Formulario.svg'},
-  {id:5, titulo:'OneDrive', url:'https://gvaedu-my.sharepoint.com/shared?id=%2Fsites%2FSection%5F03009749%2DC%2FDocumentos%20compartidos%2FGeneral&listurl=https%3A%2F%2Fgvaedu%2Esharepoint%2Ecom%2Fsites%2FSection%5F03009749%2DC%2FDocumentos%20compartidos&viewid=5a00f050%2D6116%2D4d4c%2D8fb4%2D97b743ea04b7', icono:'OneDrive.svg'},
-  {id:6, titulo:'Canva', url:'https://www.canva.com/folder/FAFx6bKMyEQ', icono:'Canva.svg'},
-  {id:7, titulo:'Horarios Docentes', url:'https://gvaedu.sharepoint.com/:x:/r/sites/Section_03009749-C/_layouts/15/Doc.aspx?sourcedoc=%7B3FA2915A-362F-40FD-9AD8-2B0895719B43%7D&file=HORARIO%20TUTOR%C3%8DAS%2026-27.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&wdwpf=c', icono:'Horario.svg'},
+  {id:3, titulo:'Horarios', url:'#horarios', icono:'Horario.svg', emoji:'⏰'},
+  {id:4, titulo:'Calendario', url:'https://outlook.cloud.microsoft/calendar/view/month', icono:'Calendario.svg'},
+  {id:5, titulo:'Canva', url:'https://www.canva.com/folder/FAFx6bKMyEQ', icono:'Canva.svg'},
+  {id:6, titulo:'OneDrive', url:'https://gvaedu-my.sharepoint.com/shared?id=%2Fsites%2FSection%5F03009749%2DC%2FDocumentos%20compartidos%2FGeneral&listurl=https%3A%2F%2Fgvaedu%2Esharepoint%2Ecom%2Fsites%2FSection%5F03009749%2DC%2FDocumentos%20compartidos&viewid=5a00f050%2D6116%2D4d4c%2D8fb4%2D97b743ea04b7', icono:'OneDrive.svg'},
+  {id:7, titulo:'Formularios', url:'https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=shell&groupid=55f0d7c6-3be7-4d1d-97a3-10e11ce90514', icono:'Formulario.svg'},
+  {id:8, titulo:'Guardias', url:'imagenes/construccion.svg', icono:'Guardias.svg'},
+  {id:9, titulo:'Web Cole', url:'https://portal.edu.gva.es/eltossal/', icono:'webcole.svg', emoji:'🏫'},
 ];
-/* ============
-{id:1, titulo:'Notificar ausencias de comedor', url:'https://forms.google.com', icono:'ausencias-comedor.svg', emoji:'🍽️'},
-============ */
 
 function cargarBotones(){
   try{
@@ -185,6 +265,10 @@ function render(){
     const a = document.createElement('a');
     a.className = 'btn-tarjeta';
     a.href = b.url; a.target = '_blank'; a.rel = 'noopener';
+    if(b.url === '#horarios'){
+      a.removeAttribute('target');
+      a.addEventListener('click', e=>{ e.preventDefault(); abrirSelector(); });
+    }
     if(esImagenLocal(b.url)){
       a.removeAttribute('target');
       a.addEventListener('click', e=>{ e.preventDefault(); abrirVisor(b.url); });
@@ -219,7 +303,7 @@ document.getElementById('installBtn').addEventListener('click', async ()=>{
 
 
 /* ============ ACCESO ============ */
-const CLAVE_ACCESO = 'tic2026';             // <-- CAMBIA AQUÍ LA CONTRASEÑA
+const CLAVE_ACCESO = 'tic';             // <-- CAMBIA AQUÍ LA CONTRASEÑA
 const SESION = 'accesoProfesTossal';
 const loginDiv = document.getElementById('login');
 const passInput = document.getElementById('passInput');
@@ -256,19 +340,74 @@ const visorImg = document.getElementById('visorImg');
 function esImagenLocal(url){
   return /^imagenes\//i.test(url) || /\.(svg|png|jpe?g|webp|gif)$/i.test(url);
 }
-function abrirVisor(url){
-  visorImg.src = url;
-  visor.classList.add('abierto');
-  document.body.style.overflow = 'hidden';
-}
 function cerrarVisor(){
   visor.classList.remove('abierto');
   visorImg.src = '';
+  const vp = document.getElementById('visorPdf');
+  if(vp){ vp.src = ''; vp.style.display = 'none'; }
+  visorImg.style.display = '';
   document.body.style.overflow = '';
 }
 document.getElementById('visorCerrar').addEventListener('click', cerrarVisor);
 visor.addEventListener('click', e => { if(e.target === visor) cerrarVisor(); });
 document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarVisor(); });
+
+
+/* ============ SELECTOR DE HORARIOS ============ */
+const selectorDiv = document.getElementById('selector');
+const chipsGrupos = document.getElementById('chipsGrupos');
+const visorPdf = document.getElementById('visorPdf');
+const visorImgEl = document.getElementById('visorImg');
+
+function construirSelector() {
+  chipsGrupos.innerHTML = '';
+  const grupos = [...new Set(HORARIOS.map(h => h.grupo))];
+  
+  grupos.forEach(g => {
+    const h3 = document.createElement('h3');
+    
+    // Añades el caso para la nueva categoría (ej: 'Departamentos')
+    if (g === 'Aulas') {
+      h3.textContent = '🏫 Aulas';
+    } else if (g === 'Departamentos') {
+      h3.textContent = '🏢 Espacio';
+    } else {
+      h3.textContent = '🧑‍🏫 Docentes';
+    }
+        chipsGrupos.appendChild(h3);
+    const cont = document.createElement('div');
+    cont.className = 'chips';
+    
+    HORARIOS.filter(h => h.grupo === g).forEach(h => {
+      const b = document.createElement('button');
+      b.className = 'chip';
+      b.textContent = h.nombre;
+      b.addEventListener('click', () => { cerrarSelector(); abrirVisor('horarios/' + h.archivo); });
+      cont.appendChild(b);
+    });
+    chipsGrupos.appendChild(cont);
+  });
+}
+function abrirSelector(){ construirSelector(); selectorDiv.classList.add('abierto'); }
+function cerrarSelector(){ selectorDiv.classList.remove('abierto'); }
+document.getElementById('selectorCerrar').addEventListener('click', cerrarSelector);
+selectorDiv.addEventListener('click', e => { if(e.target === selectorDiv) cerrarSelector(); });
+
+/* visor: PDF con embed, imágenes con img */
+function abrirVisor(url){
+  if(/\.pdf$/i.test(url)){
+    visorImgEl.style.display = 'none';
+    visorPdf.style.display = 'block';
+    visorPdf.src = url;
+  }else{
+    visorPdf.style.display = 'none';
+    visorPdf.src = '';
+    visorImgEl.style.display = '';
+    visorImgEl.src = url;
+  }
+  visor.classList.add('abierto');
+  document.body.style.overflow = 'hidden';
+}
 
 render();
 </script>

@@ -1,5 +1,5 @@
-const CACHE = 'profes-tossal-v3';
-const ASSETS = ['./index.html','./manifest.json','./icon-192.png','./icon-512.png','./apple-touch-icon.png','./icons/ausencias-comedor.svg','./icons/menu-comedor.svg','./icons/calendario.svg','./icons/contacto-docentes.svg','./icons/web-colegio.svg','./icons/correo.svg','./imagenes/menu-comedor.svg'];
+const CACHE = 'profes-tossal-v4';
+const ASSETS = ['./index.html','./manifest.json','./icon-192.png','./icon-512.png','./apple-touch-icon.png','./icons/ausencias-comedor.svg','./icons/menu-comedor.svg','./icons/calendario.svg','./icons/contacto-docentes.svg','./icons/web-colegio.svg','./icons/correo.svg','./imagenes/menu-comedor.svg','./horarios/1A.pdf','./horarios/2A.pdf','./horarios/3A.pdf','./horarios/4A.pdf','./horarios/5A.pdf','./horarios/6A.pdf','./horarios/Garcia.pdf','./horarios/Lopez.pdf','./horarios/Martinez.pdf','./horarios/Sanchez.pdf'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
   self.skipWaiting();
